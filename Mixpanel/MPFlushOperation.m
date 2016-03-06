@@ -182,6 +182,7 @@ extern NSString * const MPEventQueueKey;
     
     self.started = YES;
     
+#if TARGET_OS_IPHONE
     NSProcessInfo *processInfo = [NSProcessInfo processInfo];
     if ([processInfo respondsToSelector:@selector(performExpiringActivityWithReason:usingBlock:)]) {
         [processInfo performExpiringActivityWithReason:@"is.workflow.my.app.mixpanel.flush" usingBlock:^(BOOL expired) {
@@ -192,11 +193,14 @@ extern NSString * const MPEventQueueKey;
             self.finished = YES;
         }];
     } else {
+#endif
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
             block();
             self.finished = YES;
         });
+#if TARGET_OS_IPHONE
     }
+#endif
 }
 
 - (BOOL)isConcurrent {
