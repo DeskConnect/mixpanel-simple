@@ -68,7 +68,7 @@ extern NSString * const MPEventQueueKey;
 }
 
 - (void)start {
-    dispatch_block_t block = ^{
+    __block dispatch_block_t block = ^{
         if (flock(_handle.fileDescriptor, LOCK_EX) == -1) {
             NSLog(@"%@: Error: Could not lock file descriptor", self);
             return;
@@ -185,12 +185,17 @@ extern NSString * const MPEventQueueKey;
 #if TARGET_OS_IPHONE
     NSProcessInfo *processInfo = [NSProcessInfo processInfo];
     if ([processInfo respondsToSelector:@selector(performExpiringActivityWithReason:usingBlock:)]) {
+        // This is to work around rdar://26359403, where the expiring activity block is retained forever
+        __weak __typeof__(self) weakSelf = self;
         [processInfo performExpiringActivityWithReason:@"is.workflow.my.app.mixpanel.flush" usingBlock:^(BOOL expired) {
+            __strong __typeof__(weakSelf) strongSelf = weakSelf;
             if (expired)
-                return [self cancel];
+                return [strongSelf cancel];
             
             block();
-            self.finished = YES;
+            block = nil;
+            
+            strongSelf.finished = YES;
         }];
     } else {
 #endif

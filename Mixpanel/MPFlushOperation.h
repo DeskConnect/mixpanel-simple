@@ -10,7 +10,7 @@
 
 @interface MPFlushOperation : NSOperation
 
-@property (nonatomic, readonly, retain) NSURL *cacheURL;
+@property (nonatomic, readonly, strong) NSURL *cacheURL;
 
 - (instancetype)initWithCacheURL:(NSURL *)cacheURL NS_DESIGNATED_INITIALIZER;
 
